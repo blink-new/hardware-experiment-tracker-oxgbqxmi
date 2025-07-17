@@ -36,19 +36,41 @@ const ExcelUploadDialog: React.FC<ExcelUploadDialogProps> = ({
     }
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+  const generateSampleData = useCallback((filename: string): any[] => {
+    // Generate realistic sample data based on filename
+    const baseData = []
+    const rowCount = Math.floor(Math.random() * 50) + 20
     
-    const files = Array.from(e.dataTransfer.files)
-    handleFiles(files)
-  }, [handleFiles])
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    handleFiles(files)
-  }
+    for (let i = 0; i < rowCount; i++) {
+      if (filename.toLowerCase().includes('battery') || filename.toLowerCase().includes('voltage')) {
+        baseData.push({
+          time: i * 0.1,
+          voltage: 3.7 - (i * 0.002) + (Math.random() - 0.5) * 0.05,
+          current: 2.0 + (Math.random() - 0.5) * 0.2,
+          temperature: 25 + (Math.random() - 0.5) * 5,
+          power: (3.7 - (i * 0.002)) * (2.0 + (Math.random() - 0.5) * 0.2)
+        })
+      } else if (filename.toLowerCase().includes('thermal') || filename.toLowerCase().includes('temp')) {
+        baseData.push({
+          time: i * 60,
+          temperature: 22 + i * 0.5 + (Math.random() - 0.5) * 2,
+          power: 50 + (Math.random() - 0.5) * 10,
+          fan_speed: 1000 + i * 10 + (Math.random() - 0.5) * 100,
+          efficiency: 0.85 - i * 0.001 + (Math.random() - 0.5) * 0.02
+        })
+      } else {
+        baseData.push({
+          time: i,
+          value_1: Math.random() * 100,
+          value_2: Math.random() * 50 + 25,
+          value_3: Math.random() * 200,
+          measurement: `M${i + 1}`
+        })
+      }
+    }
+    
+    return baseData
+  }, [])
 
   const handleFiles = useCallback(async (files: File[]) => {
     const file = files[0]
@@ -94,42 +116,20 @@ const ExcelUploadDialog: React.FC<ExcelUploadDialogProps> = ({
     } finally {
       setIsProcessing(false)
     }
-  }, [toast])
+  }, [toast, generateSampleData])
 
-  const generateSampleData = (filename: string): any[] => {
-    // Generate realistic sample data based on filename
-    const baseData = []
-    const rowCount = Math.floor(Math.random() * 50) + 20
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
     
-    for (let i = 0; i < rowCount; i++) {
-      if (filename.toLowerCase().includes('battery') || filename.toLowerCase().includes('voltage')) {
-        baseData.push({
-          time: i * 0.1,
-          voltage: 3.7 - (i * 0.002) + (Math.random() - 0.5) * 0.05,
-          current: 2.0 + (Math.random() - 0.5) * 0.2,
-          temperature: 25 + (Math.random() - 0.5) * 5,
-          power: (3.7 - (i * 0.002)) * (2.0 + (Math.random() - 0.5) * 0.2)
-        })
-      } else if (filename.toLowerCase().includes('thermal') || filename.toLowerCase().includes('temp')) {
-        baseData.push({
-          time: i * 60,
-          temperature: 22 + i * 0.5 + (Math.random() - 0.5) * 2,
-          power: 50 + (Math.random() - 0.5) * 10,
-          fan_speed: 1000 + i * 10 + (Math.random() - 0.5) * 100,
-          efficiency: 0.85 - i * 0.001 + (Math.random() - 0.5) * 0.02
-        })
-      } else {
-        baseData.push({
-          time: i,
-          value_1: Math.random() * 100,
-          value_2: Math.random() * 50 + 25,
-          value_3: Math.random() * 200,
-          measurement: `M${i + 1}`
-        })
-      }
-    }
-    
-    return baseData
+    const files = Array.from(e.dataTransfer.files)
+    handleFiles(files)
+  }, [handleFiles])
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    handleFiles(files)
   }
 
   const handleConfirmUpload = () => {
